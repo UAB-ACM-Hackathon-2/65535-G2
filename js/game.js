@@ -8,48 +8,28 @@ Game.prototype.preload = function (){
 };
 
 Game.prototype.create = function (){
-    this.rotationCenterX = this.game.width / 2;
-    this.rotationCenterY = this.game.height / 2;
-    this.rotationRadius = 450;
-    
+    game.world.setBounds(0,0,500000, 1000);
+    this.speed = 800;
+    this.jumpSpeed = -700;
+    this.GROUND_LEVEL = this.game.height - 100;
     this.GRAVITY = 1000;
-    //game.physics.arcade.gravity.y = this.GRAVITY;
-    game.physics.startSystem(Phaser.Physics.P2JS);
-    this.playerCollisionGroup = game.physics.p2.createCollisionGroup();
-    this.ringCollisionGroup = game.physics.p2.createCollisionGroup();
+    game.physics.arcade.gravity.y = this.GRAVITY;
+
+    //var background = game.add.tileSprite(0,0,game.world.width,game.world.height, 'badperson');
     
     this.person = this.game.add.sprite(this.game.width/2, this.game.height/2, 'badperson');
-    this.game.physics.p2.enable(this.person, false);
-    this.person.body.velocity.x = 10;
-    this.person.body.fixedRotation = true;
+    this.game.physics.enable(this.person, Phaser.Physics.ARCADE);
 
+    //game.camera.follow(this.person, Phaser.Camera.FOLLOW_LOCKON);
 
-    this.loop = this.game.add.group();
-    var num_blocks = 90;
-    for (var i = 0; i < num_blocks; i ++){
-        var angle = (i / num_blocks) * 360;
-        var radius = this.rotationRadius;
-        
-        var x = Math.cos(toRadians(angle)) * radius + this.rotationCenterX;
-        var y = Math.sin(toRadians(angle)) * radius  + this.rotationCenterY;
-
-        var blk = this.game.add.sprite(x, y, 'block1');
-        this.game.physics.p2.enable(blk, false);
-        blk.body.setCollisionGroup(this.ringCollisionGroup);
-        blk.pivot.x = blk.width / 2;
-        blk.pivot.y = blk.height / 2;
-
-        //blk.anchor.x = blk.width / 2;
-        //blk.anchor.y = blk.height / 2;
-        blk.x = 0;
-        blk.y = 0;
-        //blk.body.kinematic = true;
-        blk.angle = angle + 90;
-        //blk.body.velocity.x = Math.sin(toRadians(angle)) * 100;
-        //blk.body.velocity.y = - Math.cos(toRadians(angle)) * 100;
-        blk.body.fixedRotation = true;
-        this.loop.add(blk);
-    }
+    var ground = this.game.add.sprite(0, this.GROUND_LEVEL, 'block1');
+    
+    ground.scale = new Phaser.Point(1000,1);
+    this.grounds = this.game.add.group();
+    this.grounds.add(ground);
+    this.game.physics.enable(ground, Phaser.Physics.ARCADE);
+    ground.body.immovable = true;
+    ground.body.allowGravity = false;
     
     this.game.input.keyboard.addKeyCapture([
         Phaser.Keyboard.LEFT,
@@ -59,31 +39,33 @@ Game.prototype.create = function (){
     ]);
 
     this.cursors = game.input.keyboard.createCursorKeys();
-
+    this.genLevel();
 };
 
-
-Game.prototype.update = function (){
-    this.loop.forEach(function (sprite){
-        var angle = this.getAngleFromCenter(sprite);
-        sprite.angle = angle + 90;
-
-        //sprite.x = Math.cos(toRadians(angle)) * this.rotationRadius;
-        //sprite.y = Math.sin(toRadians(angle)) * this.rotationRadius;
-        
-        //sprite.body.velocity.y = -Math.cos(toRadians(angle)) * 1000;
-        //sprite.body.velocity.x = Math.sin(toRadians(angle)) * 1000;
-        
-    }, this);
-    if (this.cursors.left.isDown){
-        this.person.body.force.x = -100;
+Game.prototype.genLevel = function (){
+    var LEVEL_HEIGHT = 100;
+    for (var i = 0; i < 1000; i++){
+        var x = Math.random() * game.world.width;
+        var y = (this.GROUND_LEVEL - 100) - LEVEL_HEIGHT * Math.round(Math.random() * 10);
+        console.log("AT: ", x, y);
+        var platform = this.game.add.sprite(x, y, 'block1');
+        platform.scale = new Phaser.Point(Math.random() * 10, 1);
+        this.game.physics.enable(platform, Phaser.Physics.ARCADE);
+        platform.body.immovable = true;
+        platform.body.allowGravity = false;
+        this.grounds.add(platform);
     }
 };
 
-Game.prototype.getAngleFromCenter = function (sprite){
-    var center = getCenter(sprite);
-    return toDegrees(Math.atan2((center.y - this.rotationCenterY) , (center.x - this.rotationCenterX)));
+Game.prototype.update = function (){
+    game.camera.focusOnXY(this.person.x + 500, this.person.y); // TODO: Change this to be responsive.
+    this.game.physics.arcade.collide(this.person, this.grounds);
+    this.person.body.velocity.x = this.speed;
+    if (this.cursors.up.isDown && this.person.body.touching.down){
+        this.person.body.velocity.y += this.jumpSpeed;
+    }
 };
+
 
 function toRadians (degrees) {
   return degrees * (Math.PI / 180);
