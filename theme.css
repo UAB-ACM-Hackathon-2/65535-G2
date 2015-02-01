@@ -3,3 +3,21 @@
     height: 100%;
     background: black;
 }
+
+.gamepage {
+    background-color: black;
+    
+}
+
+.intropage {
+    background-color: #000044;
+    
+}
+
+.title {
+    color: white;
+}
+.image {
+    color: white;
+    text-align: center;
+}

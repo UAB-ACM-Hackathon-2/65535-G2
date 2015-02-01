@@ -13,6 +13,7 @@ Game.prototype.preload = function (){
     this.game.load.image('spike', 'assets/spike-one.png');
     this.game.load.image('ground', 'assets/bottom-platform.png');
     this.game.load.image('bloodlet', 'assets/bloodlet.png');
+    this.game.load.audio('music', 'assets/Carefree.mp3');
 };
 
 Game.prototype.create = function (){
@@ -64,7 +65,13 @@ Game.prototype.create = function (){
 
     this.scarves = this.game.add.group();
 
-    this.game.stage.backgroundColor = "#000033"
+    this.game.stage.backgroundColor = "#000033";
+
+    this.backgroundMusic = this.game.add.audio('music');
+    this.backgroundMusic.volume = 0.3;
+    this.backgroundMusic.loop = true;
+    this.backgroundMusic.play();
+    
 };
 
 // Game.prototype.genLevel = function (){
@@ -127,8 +134,12 @@ Game.prototype.genStep = function (xlimit){
         this.game.physics.enable(scarf, Phaser.Physics.ARCADE);
         scarf.body.immovable = true;
         scarf.body.allowGravity = false;
-
+        
         this.scarves.add(scarf);
+
+         if (Math.random() < 0.001){
+            scarf.body.angularVelocity = 100;
+        }
 
     }
 
@@ -170,18 +181,22 @@ Game.prototype.gameOver = function (){
     this.speed = 0;
 
     if (violence){
-        var emitter = game.add.emitter(this.person.x, this.person.y, 100);
+        var emitter = game.add.emitter(this.person.x + 25, this.person.y + 170, 100);
         emitter.makeParticles('bloodlet');
 
         emitter.start(false, 1000, 20);
     }
+
+    game.time.events.add(1000, function (){
+        window.location = window.location;
+    }, this);
     
 };
 
 Game.prototype.update = function (){
     var self = this;
-    this.score += 1;
-    this.score += (this.GROUND_LEVEL - this.person.y )/ 400;
+    this.score += 0.1;
+    this.score += (this.GROUND_LEVEL - this.person.y )/ 4000;
     game.camera.focusOnXY(this.person.x + 500, this.person.y); // TODO: Change this to be responsive.
     
     
@@ -197,7 +212,7 @@ Game.prototype.update = function (){
 
     this.game.physics.arcade.collide(this.person, this.scarves, function (person, scarf){
         scarf.destroy();
-        self.score += 250;
+        self.score += 100;
     });
     this.person.body.velocity.x = this.speed;
     if (this.cursors.up.isDown && this.person.body.touching.down){
