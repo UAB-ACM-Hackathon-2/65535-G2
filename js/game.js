@@ -7,6 +7,7 @@ Game.prototype.preload = function (){
     this.game.load.image('block1', 'assets/block1.png');
     this.game.load.image('badperson', 'assets/badperson.png');
     this.game.load.image('standing', 'assets/sprite-standing.png');
+    this.game.load.spritesheet('positions', 'assets/spritesheet.png', 75, 150);
 };
 
 Game.prototype.create = function (){
@@ -22,9 +23,10 @@ Game.prototype.create = function (){
     //var background = game.add.tileSprite(0,0,game.world.width,game.world.height, 'background1');
     //background.scale = new Phaser.Point(0.2, 0.2);
     
-    this.person = this.game.add.sprite(this.game.width/2, this.game.height/2, 'standing');
+    this.person = this.game.add.sprite(this.game.width/2, this.game.height/2, 'positions');
     this.game.physics.enable(this.person, Phaser.Physics.ARCADE);
-
+    this.person.animations.add('run', [1, 2], 1, true);
+    this.person.play('run', 5, true);
     //game.camera.follow(this.person, Phaser.Camera.FOLLOW_LOCKON);
 
     var ground = this.game.add.tileSprite(0, this.GROUND_LEVEL, this.world.width, 50, 'block1');
@@ -82,7 +84,8 @@ Game.prototype.genStep = function (xlimit){
 Game.prototype.update = function (){
     game.camera.focusOnXY(this.person.x + 500, this.person.y); // TODO: Change this to be responsive.
 
-    this.genStep(this.person.x + 3000);
+    
+    //this.genStep(this.person.x + 3000);
     
     this.game.physics.arcade.collide(this.person, this.grounds);
     this.game.physics.arcade.collide(this.person, this.killers, function (person, killer){
